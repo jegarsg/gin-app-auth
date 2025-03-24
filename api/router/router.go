@@ -7,14 +7,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter() *gin.Engine {
+func SetupRouter(userHandler *handler.UserHandler) *gin.Engine {
 	r := gin.Default()
 
 	// Public User routes
 	userGroup := r.Group("/api/users")
 	{
-		userGroup.POST("/", handler.CreateUser)
-		userGroup.POST("/register", handler.RegisterUser)
+		userGroup.POST("/register", userHandler.RegisterUser)
 	}
 
 	// Authentication route
@@ -25,7 +24,6 @@ func SetupRouter() *gin.Engine {
 	secure := r.Group("/api/secure")
 	secure.Use(middleware.AuthMiddleware())
 	{
-		secure.GET("/users", handler.GetUsers)          // Example secure route
 		secure.POST("/users/data", handler.GetUserData) // Secure data route
 	}
 
