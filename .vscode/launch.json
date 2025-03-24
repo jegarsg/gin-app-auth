@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Go Gin App",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "D:/Development/Golang/GreatThanosApp/cmd/main.go",
+            "env": {
+                "JWT_SECRET": "app-great-thanos",
+                "JWT_EXPIRE_TIME": "900"
+            },
+            "args": []
+        }
+    ]
+}

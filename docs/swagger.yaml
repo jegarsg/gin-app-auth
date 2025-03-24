@@ -1,0 +1,61 @@
+basePath: /api
+definitions:
+  models.User:
+    properties:
+      createdBy:
+        type: string
+      createdDate:
+        type: string
+      email:
+        type: string
+      fullname:
+        type: string
+      isActive:
+        type: boolean
+      isDeleted:
+        type: boolean
+      modifiedBy:
+        type: string
+      modifiedDate:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      userId:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8090
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server for the Great Thanos App.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Great Thanos App API
+  version: "1.0"
+paths:
+  /api/secure/users:
+    get:
+      consumes:
+      - application/json
+      description: Get all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+      summary: Get list of users
+      tags:
+      - Users
+swagger: "2.0"
