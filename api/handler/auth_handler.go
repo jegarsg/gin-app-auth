@@ -9,10 +9,10 @@ import (
 )
 
 type AuthHandler struct {
-	AuthService *service.AuthService
+	AuthService service.AuthService
 }
 
-func NewAuthHandler(authService *service.AuthService) *AuthHandler {
+func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	return &AuthHandler{AuthService: authService}
 }
 
@@ -24,11 +24,32 @@ func (h *AuthHandler) LoginSecure(c *gin.Context) {
 		return
 	}
 
-	response, err := h.AuthService.Login(loginRequest)
+	accessToken, err := h.AuthService.Login(loginRequest)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, gin.H{
+		"access_token": accessToken,
+	})
+}
+
+func (h *AuthHandler) RefreshToken(c *gin.Context) {
+	refreshToken := c.GetHeader("Authorization")
+	if refreshToken == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing refresh token"})
+		return
+	}
+
+	newAccessToken, newRefreshToken, err := h.AuthService.RefreshToken(refreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  newAccessToken,
+		"refresh_token": newRefreshToken,
+	})
 }

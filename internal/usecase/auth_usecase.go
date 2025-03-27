@@ -1,40 +1,63 @@
 package usecase
 
 import (
-	"errors"
-	"time"
-
-	"GreatThanosApp/internal/dto"
 	"GreatThanosApp/internal/repository"
 	"GreatThanosApp/utils"
+	"errors"
 )
 
-type AuthUseCase struct {
-	UserRepo *repository.AuthRepository
+type AuthUseCase interface {
+	Login(email, password string) (string, error)
+	RefreshNewTokens(refreshToken string) (string, string, error)
 }
 
-func NewAuthUseCase(userRepo *repository.AuthRepository) *AuthUseCase {
-	return &AuthUseCase{UserRepo: userRepo}
+type authUseCase struct {
+	authRepo repository.AuthRepository
 }
 
-func (uc *AuthUseCase) Login(request dto.LoginRequest) (dto.LoginResponse, error) {
-	user, err := uc.UserRepo.FindByEmail(request.Email)
+func NewAuthUseCase(authRepo repository.AuthRepository) AuthUseCase {
+	return &authUseCase{authRepo: authRepo}
+}
+
+func (u *authUseCase) Login(email, password string) (string, error) {
+	user, err := u.authRepo.GetUserByEmail(email)
 	if err != nil {
-		return dto.LoginResponse{}, errors.New("invalid email or password")
+		return "", errors.New("invalid credentials")
 	}
 
-	if !utils.CheckPasswordHash(request.Password, user.Password) {
-		return dto.LoginResponse{}, errors.New("invalid email or password")
+	if !utils.CheckPasswordHash(password, user.Password) {
+		return "", errors.New("invalid credentials")
 	}
 
-	token, err := utils.GenerateJWT(user.Email, user.UserName)
+	accessToken, err := utils.GenerateJWT(user.Email, user.UserName) // Fix here
 	if err != nil {
-		return dto.LoginResponse{}, errors.New("failed to generate token")
+		return "", errors.New("failed to generate access token")
 	}
 
-	return dto.LoginResponse{
-		Message: "Login successful",
-		Token:   token,
-		Expires: time.Now().Add(30 * time.Second).Unix(),
-	}, nil
+	return accessToken, nil
+}
+
+func (u *authUseCase) RefreshNewTokens(refreshToken string) (string, string, error) {
+	claims, err := utils.ValidateJWT(refreshToken)
+	if err != nil {
+		return "", "", errors.New("invalid refresh token")
+	}
+
+	email, emailOk := (*claims)["email"].(string)
+	username, usernameOk := (*claims)["username"].(string)
+	if !emailOk || !usernameOk {
+		return "", "", errors.New("invalid token payload")
+	}
+
+	newAccessToken, err := utils.GenerateJWT(email, username)
+	if err != nil {
+		return "", "", errors.New("failed to generate new access token")
+	}
+
+	newRefreshToken, err := utils.GenerateRefreshToken(email, username)
+	if err != nil {
+		return "", "", errors.New("failed to generate new refresh token")
+	}
+
+	return newAccessToken, newRefreshToken, nil
 }
