@@ -5,14 +5,23 @@ import (
 	"GreatThanosApp/internal/usecase"
 )
 
-type AuthService struct {
-	AuthUseCase *usecase.AuthUseCase
+type AuthService interface {
+	Login(request dto.LoginRequest) (string, error)
+	RefreshToken(refreshToken string) (string, string, error)
 }
 
-func NewAuthService(authUseCase *usecase.AuthUseCase) *AuthService {
-	return &AuthService{AuthUseCase: authUseCase}
+type authService struct {
+	authUseCase usecase.AuthUseCase
 }
 
-func (s *AuthService) Login(request dto.LoginRequest) (dto.LoginResponse, error) {
-	return s.AuthUseCase.Login(request)
+func NewAuthService(authUseCase usecase.AuthUseCase) AuthService {
+	return &authService{authUseCase: authUseCase}
+}
+
+func (s *authService) Login(request dto.LoginRequest) (string, error) {
+	return s.authUseCase.Login(request.Email, request.Password)
+}
+
+func (s *authService) RefreshToken(refreshToken string) (string, string, error) {
+	return s.authUseCase.RefreshNewTokens(refreshToken)
 }
