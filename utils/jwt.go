@@ -9,21 +9,17 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// GenerateJWT generates a JWT token using email and username
 func GenerateJWT(email string, username string) (string, error) {
 	cfg := config.LoadConfig()
 
-	// Create JWT claims including email, username, and expiration time
 	claims := jwt.MapClaims{
 		"email":    email,
 		"username": username,
 		"exp":      time.Now().Add(cfg.JWTExpireTime).Unix(),
 	}
 
-	// Create a new token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	// Sign the token using the secret key
 	tokenString, err := token.SignedString([]byte(cfg.JWTSecret))
 	if err != nil {
 		return "", err
@@ -32,21 +28,17 @@ func GenerateJWT(email string, username string) (string, error) {
 	return tokenString, nil
 }
 
-// GenerateRefreshToken generates a JWT refresh token
 func GenerateRefreshToken(email string, username string) (string, error) {
 	cfg := config.LoadConfig()
 
-	// Create JWT claims for the refresh token with a longer expiration time
 	claims := jwt.MapClaims{
 		"email":    email,
 		"username": username,
-		"exp":      time.Now().Add(cfg.JWTRefreshExpireTime).Unix(), // Longer expiration for refresh
+		"exp":      time.Now().Add(cfg.JWTRefreshExpireTime).Unix(),
 	}
 
-	// Create a new token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	// Sign the token using the secret key
 	tokenString, err := token.SignedString([]byte(cfg.JWTSecret))
 	if err != nil {
 		return "", err
@@ -67,12 +59,12 @@ func ValidateJWT(tokenString string) (*jwt.MapClaims, error) {
 	})
 
 	if err != nil {
-		fmt.Println("Error parsing token:", err) // Debug line
+		fmt.Println("Error parsing token:", err)
 		return nil, err
 	}
 
 	if !token.Valid {
-		fmt.Println("Invalid token") // Debug line
+		fmt.Println("Invalid token")
 		return nil, errors.New("invalid token")
 	}
 

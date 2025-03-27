@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"GreatThanosApp/internal/dto"
 	"GreatThanosApp/internal/repository"
 	"GreatThanosApp/models"
 	"GreatThanosApp/utils"
@@ -19,17 +20,16 @@ func NewUserUseCase(userRepo *repository.UserRepository) *UserUseCase {
 	return &UserUseCase{UserRepo: userRepo}
 }
 
-// RegisterUser handles user registration logic
-func (uc *UserUseCase) RegisterUser(user models.User) (models.User, error) {
+func (uc *UserUseCase) RegisterUser(user models.User) (dto.RegisterUserResponse, error) {
 
 	formattedPhone, err := utils.FormatPhone(user.Phone)
 	if err != nil {
-		return models.User{}, errors.New("invalid phone number format")
+		return dto.RegisterUserResponse{}, errors.New("invalid phone number format")
 	}
 	user.Phone = formattedPhone
 
 	if uc.UserRepo.ExistsByEmailOrPhone(user.Email, user.Phone) {
-		return models.User{}, errors.New("email or phone already registered")
+		return dto.RegisterUserResponse{}, errors.New("email or phone already registered")
 	}
 
 	user.UserName = generateUniqueUsername(user.FullName, uc)
@@ -44,22 +44,31 @@ func (uc *UserUseCase) RegisterUser(user models.User) (models.User, error) {
 
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
-		return models.User{}, errors.New("failed to hash password")
+		return dto.RegisterUserResponse{}, errors.New("failed to hash password")
 	}
 	user.Password = hashedPassword
 
 	if err := uc.UserRepo.CreateUser(user); err != nil {
-		return models.User{}, errors.New("failed to save user")
+		return dto.RegisterUserResponse{}, errors.New("failed to save user")
 	}
 
-	return user, nil
+	response := dto.RegisterUserResponse{
+		UserId:      user.UserId,
+		UserName:    user.UserName,
+		FullName:    user.FullName,
+		Email:       user.Email,
+		Phone:       user.Phone,
+		IsActive:    user.IsActive,
+		CreatedDate: user.CreatedDate,
+	}
+
+	return response, nil
 }
 
 func generateUniqueUsername(fullName string, uc *UserUseCase) string {
 	baseUsername := strings.ReplaceAll(strings.ToLower(fullName), " ", "")
 	username := baseUsername
 
-	// Check if the username already exists and generate a unique one
 	for uc.UserRepo.ExistsByUsername(username) {
 		username = utils.GenerateUsername(fullName)
 	}

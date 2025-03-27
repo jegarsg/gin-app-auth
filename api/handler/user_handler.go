@@ -9,16 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// UserHandler handles HTTP requests for user-related operations
 type UserHandler struct {
-	UserService *service.UserService // Inject UserService
+	UserService *service.UserService
 }
 
 func NewUserHandler(userService *service.UserService) *UserHandler {
 	return &UserHandler{UserService: userService}
 }
 
-// RegisterUser handles user registration
 func (h *UserHandler) RegisterUser(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -26,7 +24,6 @@ func (h *UserHandler) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// Delegate business logic to the service layer
 	createdUser, err := h.UserService.RegisterUser(user)
 	if err != nil {
 		pkg.SendResponse(c, http.StatusInternalServerError, err.Error(), nil)

@@ -14,7 +14,7 @@ func GenerateUsername(fullname string) string {
 
 	// Generate a random suffix with 2 digits and 2 letters
 	rand.Seed(time.Now().UnixNano())
-	digits := rand.Intn(1000) // Two random digits
+	digits := rand.Intn(1000) // Three random digits
 	letters := RandString(2)  // Two random letters
 	return username + fmt.Sprintf("%02d%s", digits, letters)
 }

@@ -28,13 +28,18 @@ func main() {
 	config.DB.AutoMigrate(&models.User{})
 
 	// Setup dependencies
-	userRepo := repository.NewUserRepository(config.DB) // Repository
-	userUseCase := usecase.NewUserUseCase(userRepo)     // UseCase
-	userService := service.NewUserService(userUseCase)  // Service
-	userHandler := handler.NewUserHandler(userService)  // Handler
+	userRepo := repository.NewUserRepository(config.DB)
+	userUseCase := usecase.NewUserUseCase(userRepo)
+	userService := service.NewUserService(userUseCase)
+	userHandler := handler.NewUserHandler(userService)
+
+	authRepo := repository.NewAuthRepository(config.DB)
+	authUseCase := usecase.NewAuthUseCase(authRepo)
+	authService := service.NewAuthService(authUseCase)
+	authHandler := handler.NewAuthHandler(authService) // Renamed variable
 
 	// Start the server
-	r := router.SetupRouter(userHandler)
+	r := router.SetupRouter(userHandler, authHandler) // Pass both handlers if needed
 
 	// Swagger endpoint
 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

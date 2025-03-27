@@ -7,7 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(userHandler *handler.UserHandler) *gin.Engine {
+func SetupRouter(
+	userHandler *handler.UserHandler, authHandler *handler.AuthHandler) *gin.Engine {
 	r := gin.Default()
 
 	// Public User routes
@@ -17,7 +18,7 @@ func SetupRouter(userHandler *handler.UserHandler) *gin.Engine {
 	}
 
 	// Authentication route
-	r.POST("/api/loginsecure", handler.LoginSecure)
+	r.POST("/api/loginsecure", authHandler.LoginSecure)
 	r.POST("/api/refreshtoken", handler.RefreshTokenHandler)
 
 	// Secured routes (with JWT middleware)
