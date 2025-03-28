@@ -16,7 +16,7 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	return &AuthHandler{AuthService: authService}
 }
 
-func (h *AuthHandler) LoginSecure(c *gin.Context) {
+func (h *AuthHandler) LoginSecureHandler(c *gin.Context) {
 	var loginRequest dto.LoginRequest
 
 	if err := c.ShouldBindJSON(&loginRequest); err != nil {
@@ -35,7 +35,7 @@ func (h *AuthHandler) LoginSecure(c *gin.Context) {
 	})
 }
 
-func (h *AuthHandler) RefreshToken(c *gin.Context) {
+func (h *AuthHandler) RefreshTokenHandler(c *gin.Context) {
 	refreshToken := c.GetHeader("Authorization")
 	if refreshToken == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing refresh token"})
