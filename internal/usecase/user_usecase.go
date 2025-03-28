@@ -12,27 +12,31 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserUseCase struct {
-	UserRepo *repository.UserRepository
+type UserUseCase interface {
+	RegisterUser(user models.User) (dto.RegisterUserResponse, error)
+	GetUserByEmail(email string) (dto.GetUserByEmailResponse, error)
 }
 
-func NewUserUseCase(userRepo *repository.UserRepository) *UserUseCase {
-	return &UserUseCase{UserRepo: userRepo}
+type userUseCase struct {
+	userRepo repository.UserRepository // Use interface instead of pointer
 }
 
-func (uc *UserUseCase) RegisterUser(user models.User) (dto.RegisterUserResponse, error) {
+func NewUserUseCase(userRepo repository.UserRepository) UserUseCase {
+	return &userUseCase{userRepo: userRepo}
+}
 
+func (uc *userUseCase) RegisterUser(user models.User) (dto.RegisterUserResponse, error) {
 	formattedPhone, err := utils.FormatPhone(user.Phone)
 	if err != nil {
 		return dto.RegisterUserResponse{}, errors.New("invalid phone number format")
 	}
 	user.Phone = formattedPhone
 
-	if uc.UserRepo.ExistsByEmailOrPhone(user.Email, user.Phone) {
+	if uc.userRepo.ExistsByEmailOrPhone(user.Email, user.Phone) {
 		return dto.RegisterUserResponse{}, errors.New("email or phone already registered")
 	}
 
-	user.UserName = generateUniqueUsername(user.FullName, uc)
+	user.UserName = uc.generateUniqueUsername(user.FullName)
 
 	user.UserId = uuid.New()
 	user.IsActive = false
@@ -48,7 +52,7 @@ func (uc *UserUseCase) RegisterUser(user models.User) (dto.RegisterUserResponse,
 	}
 	user.Password = hashedPassword
 
-	if err := uc.UserRepo.CreateUser(user); err != nil {
+	if err := uc.userRepo.CreateUser(user); err != nil {
 		return dto.RegisterUserResponse{}, errors.New("failed to save user")
 	}
 
@@ -65,12 +69,39 @@ func (uc *UserUseCase) RegisterUser(user models.User) (dto.RegisterUserResponse,
 	return response, nil
 }
 
-func generateUniqueUsername(fullName string, uc *UserUseCase) string {
+// Fixed function signature & removed infinite loop risk
+func (uc *userUseCase) generateUniqueUsername(fullName string) string {
 	baseUsername := strings.ReplaceAll(strings.ToLower(fullName), " ", "")
 	username := baseUsername
+	attempts := 0
 
-	for uc.UserRepo.ExistsByUsername(username) {
+	for uc.userRepo.ExistsByUsername(username) {
+		attempts++
 		username = utils.GenerateUsername(fullName)
+
+		// Avoid infinite loop
+		if attempts > 10 {
+			username = username + uuid.New().String()[:8]
+			break
+		}
 	}
 	return username
+}
+
+func (uc *userUseCase) GetUserByEmail(email string) (dto.GetUserByEmailResponse, error) {
+	user, err := uc.userRepo.FindByEmail(email)
+	if err != nil {
+		return dto.GetUserByEmailResponse{}, err // Return actual error
+	}
+
+	response := dto.GetUserByEmailResponse{
+		UserId:      user.UserId,
+		UserName:    user.UserName,
+		FullName:    user.FullName,
+		Email:       user.Email,
+		Phone:       user.Phone,
+		IsActive:    user.IsActive,
+		CreatedDate: user.CreatedDate,
+	}
+	return response, nil
 }

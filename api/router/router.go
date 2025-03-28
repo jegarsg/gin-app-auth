@@ -14,18 +14,18 @@ func SetupRouter(
 	// Public User routes
 	userGroup := r.Group("/api/users")
 	{
-		userGroup.POST("/register", userHandler.RegisterUser)
+		userGroup.POST("/register", userHandler.Register)
 	}
 
 	// Authentication route
-	r.POST("/api/loginsecure", authHandler.LoginSecure)
-	r.POST("/api/refreshtoken", handler.RefreshTokenHandler)
+	r.POST("/api/loginsecure", authHandler.LoginSecureHandler)
+	r.POST("/api/refreshtoken", authHandler.RefreshTokenHandler)
 
 	// Secured routes (with JWT middleware)
 	secure := r.Group("/api/secure")
 	secure.Use(middleware.AuthMiddleware())
 	{
-		secure.POST("/users/data", handler.GetUserData) // Secure data route
+		secure.POST("/userbyemail/get", userHandler.GetUserByEmailHandler)
 	}
 
 	return r

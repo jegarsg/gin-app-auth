@@ -6,14 +6,23 @@ import (
 	"GreatThanosApp/models"
 )
 
-type UserService struct {
-	UserUseCase *usecase.UserUseCase
+type UserService interface {
+	RegisterUser(user models.User) (dto.RegisterUserResponse, error)
+	GetUserByEmail(email string) (dto.GetUserByEmailResponse, error)
 }
 
-func NewUserService(userUseCase *usecase.UserUseCase) *UserService {
-	return &UserService{UserUseCase: userUseCase}
+type userService struct {
+	UserUseCase usecase.UserUseCase
 }
 
-func (s *UserService) RegisterUser(user models.User) (dto.RegisterUserResponse, error) {
+func NewUserService(userUseCase usecase.UserUseCase) UserService {
+	return &userService{UserUseCase: userUseCase}
+}
+
+func (s *userService) RegisterUser(user models.User) (dto.RegisterUserResponse, error) {
 	return s.UserUseCase.RegisterUser(user)
+}
+
+func (s *userService) GetUserByEmail(email string) (dto.GetUserByEmailResponse, error) {
+	return s.UserUseCase.GetUserByEmail(email)
 }
