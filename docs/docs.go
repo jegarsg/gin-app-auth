@@ -58,7 +58,7 @@ const docTemplate = `{
                 "createdBy": {
                     "type": "string"
                 },
-                "createdDate": {
+                "CreatedAt": {
                     "type": "string"
                 },
                 "email": {

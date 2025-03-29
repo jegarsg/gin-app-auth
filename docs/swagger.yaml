@@ -4,7 +4,7 @@ definitions:
     properties:
       createdBy:
         type: string
-      createdDate:
+      CreatedAt:
         type: string
       email:
         type: string

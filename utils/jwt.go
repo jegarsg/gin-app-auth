@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
-func GenerateJWT(email string, username string) (string, error) {
+func GenerateJWT(userId uuid.UUID, email string, username string) (string, error) {
 	cfg := config.LoadConfig()
 
 	claims := jwt.MapClaims{
+		"userId":   userId,
 		"email":    email,
 		"username": username,
 		"exp":      time.Now().Add(cfg.JWTExpireTime).Unix(),

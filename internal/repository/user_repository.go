@@ -8,7 +8,7 @@ import (
 
 type UserRepository interface {
 	CreateUser(user models.User) error
-	FindByEmail(email string) (*models.User, error) // Match with implementation
+	FindByEmail(email string) (*models.User, error)
 	ExistsByUsername(username string) bool
 	ExistsByEmailOrPhone(email, phone string) bool
 }
@@ -37,7 +37,6 @@ func (r *userRepository) CreateUser(user models.User) error {
 	return r.DB.Create(&user).Error
 }
 
-// Fixed function name to match interface
 func (r *userRepository) FindByEmail(email string) (*models.User, error) {
 	var user models.User
 	if err := r.DB.Where("email = ?", email).First(&user).Error; err != nil {

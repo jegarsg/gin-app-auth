@@ -25,7 +25,7 @@ func main() {
 	config.ConnectDB()
 
 	// Automatically migrate the User model (create table if not exists)
-	config.DB.AutoMigrate(&models.User{})
+	config.DB.AutoMigrate(&models.User{}, &models.UserLogin{})
 
 	// Setup dependencies
 	userRepo := repository.NewUserRepository(config.DB)
@@ -39,7 +39,7 @@ func main() {
 	authHandler := handler.NewAuthHandler(authService) // Renamed variable
 
 	// Start the server
-	r := router.SetupRouter(userHandler, authHandler) // Pass both handlers if needed
+	r := router.SetupRouter(config.DB, userHandler, authHandler) // Pass both handlers if needed
 
 	// Swagger endpoint
 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

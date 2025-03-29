@@ -3,11 +3,14 @@ package service
 import (
 	"GreatThanosApp/internal/dto"
 	"GreatThanosApp/internal/usecase"
+
+	"github.com/google/uuid"
 )
 
 type AuthService interface {
 	Login(request dto.LoginRequest) (string, error)
 	RefreshToken(refreshToken string) (string, string, error)
+	Logout(userId uuid.UUID) error
 }
 
 type authService struct {
@@ -24,4 +27,8 @@ func (s *authService) Login(request dto.LoginRequest) (string, error) {
 
 func (s *authService) RefreshToken(refreshToken string) (string, string, error) {
 	return s.authUseCase.RefreshNewTokens(refreshToken)
+}
+
+func (s *authService) Logout(userId uuid.UUID) error {
+	return s.authUseCase.Logout(userId)
 }
