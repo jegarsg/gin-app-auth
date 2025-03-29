@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"GreatThanosApp/internal/repository"
 	"GreatThanosApp/utils"
 	"errors"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(authRepo repository.AuthRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -25,7 +26,11 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Validate the token using utils.ValidateJWT
+		if !authRepo.IsTokenValid(tokenString) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			return
+		}
+
 		claims, err := utils.ValidateJWT(tokenString)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
@@ -40,9 +45,11 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		email, _ := getClaimValue(*claims, "email") // Email is optional
 
+		userId, _ := getClaimValue(*claims, "userId") // Email is optional
+
 		c.Set("Username", username)
 		c.Set("Email", email)
-
+		c.Set("UserId", userId)
 		c.Next()
 	}
 }

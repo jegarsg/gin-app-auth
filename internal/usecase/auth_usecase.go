@@ -4,11 +4,15 @@ import (
 	"GreatThanosApp/internal/repository"
 	"GreatThanosApp/utils"
 	"errors"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type AuthUseCase interface {
 	Login(email, password string) (string, error)
 	RefreshNewTokens(refreshToken string) (string, string, error)
+	Logout(userId uuid.UUID) error
 }
 
 type authUseCase struct {
@@ -29,9 +33,16 @@ func (u *authUseCase) Login(email, password string) (string, error) {
 		return "", errors.New("invalid credentials")
 	}
 
-	accessToken, err := utils.GenerateJWT(user.Email, user.UserName) // Fix here
+	accessToken, err := utils.GenerateJWT(user.UserID, user.Email, user.UserName) // Fix here
 	if err != nil {
 		return "", errors.New("failed to generate access token")
+	}
+
+	refreshToken := ""
+
+	err = u.authRepo.SaveUserLogin(user.UserID, email, accessToken, refreshToken, time.Now().Add(7*24*time.Hour))
+	if err != nil {
+		return "", errors.New("failed to save user login session")
 	}
 
 	return accessToken, nil
@@ -43,13 +54,18 @@ func (u *authUseCase) RefreshNewTokens(refreshToken string) (string, string, err
 		return "", "", errors.New("invalid refresh token")
 	}
 
+	userId := (*claims)["userId"].(string)
 	email, emailOk := (*claims)["email"].(string)
 	username, usernameOk := (*claims)["username"].(string)
 	if !emailOk || !usernameOk {
 		return "", "", errors.New("invalid token payload")
 	}
+	parsedUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return "", "", errors.New("error parsing uuid")
+	}
 
-	newAccessToken, err := utils.GenerateJWT(email, username)
+	newAccessToken, err := utils.GenerateJWT(parsedUUID, email, username)
 	if err != nil {
 		return "", "", errors.New("failed to generate new access token")
 	}
@@ -59,5 +75,13 @@ func (u *authUseCase) RefreshNewTokens(refreshToken string) (string, string, err
 		return "", "", errors.New("failed to generate new refresh token")
 	}
 
+	err = u.authRepo.SaveUserLogin(parsedUUID, email, newAccessToken, newRefreshToken, time.Now().Add(7*24*time.Hour))
+	if err != nil {
+		return "", "", errors.New("failed to save user login session")
+	}
 	return newAccessToken, newRefreshToken, nil
+}
+
+func (u *authUseCase) Logout(userId uuid.UUID) error {
+	return u.authRepo.InvalidateToken(userId)
 }

@@ -38,11 +38,11 @@ func (uc *userUseCase) RegisterUser(user models.User) (dto.RegisterUserResponse,
 
 	user.UserName = uc.generateUniqueUsername(user.FullName)
 
-	user.UserId = uuid.New()
+	user.UserID = uuid.New()
 	user.IsActive = false
 	user.IsDeleted = false
-	user.CreatedDate = time.Now()
-	user.ModifiedDate = time.Now()
+	user.CreatedAt = time.Now()
+	user.ModifiedAt = time.Now()
 	user.CreatedBy = user.Email
 	user.ModifiedBy = user.Email
 
@@ -57,13 +57,13 @@ func (uc *userUseCase) RegisterUser(user models.User) (dto.RegisterUserResponse,
 	}
 
 	response := dto.RegisterUserResponse{
-		UserId:      user.UserId,
-		UserName:    user.UserName,
-		FullName:    user.FullName,
-		Email:       user.Email,
-		Phone:       user.Phone,
-		IsActive:    user.IsActive,
-		CreatedDate: user.CreatedDate,
+		UserID:    user.UserID,
+		UserName:  user.UserName,
+		FullName:  user.FullName,
+		Email:     user.Email,
+		Phone:     user.Phone,
+		IsActive:  user.IsActive,
+		CreatedAt: user.CreatedAt,
 	}
 
 	return response, nil
@@ -95,13 +95,13 @@ func (uc *userUseCase) GetUserByEmail(email string) (dto.GetUserByEmailResponse,
 	}
 
 	response := dto.GetUserByEmailResponse{
-		UserId:      user.UserId,
-		UserName:    user.UserName,
-		FullName:    user.FullName,
-		Email:       user.Email,
-		Phone:       user.Phone,
-		IsActive:    user.IsActive,
-		CreatedDate: user.CreatedDate,
+		UserID:    user.UserID,
+		UserName:  user.UserName,
+		FullName:  user.FullName,
+		Email:     user.Email,
+		Phone:     user.Phone,
+		IsActive:  user.IsActive,
+		CreatedAt: user.CreatedAt,
 	}
 	return response, nil
 }
