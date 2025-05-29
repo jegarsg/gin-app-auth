@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: great-thanos-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: great-thanos-app
+  template:
+    metadata:
+      labels:
+        app: great-thanos-app
+    spec:
+      containers:
+        - name: great-thanos-app
+          image: rollingthanos/great-thanos-app:latest
+          ports:
+            - containerPort: 8080
